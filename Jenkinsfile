@@ -41,12 +41,12 @@ pipeline{
         stage("test"){
 
         steps{
-            script{
+            sh '''
                 if [[ -f build/index.html ]]
                 then 
                 echo "file exist and test is successfull"
                 fi
-            }
+            '''
         }
         }
     }
