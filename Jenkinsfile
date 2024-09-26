@@ -42,7 +42,7 @@ pipeline{
 
         steps{
             script{
-                if [[ -f build/index.html]]
+                if [[ -f build/index.html ]]
                 then 
                 echo "file exist and test is successfull"
                 fi
