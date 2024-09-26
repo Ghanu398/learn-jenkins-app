@@ -1,7 +1,11 @@
 pipeline{
    agent any
     stages{
-        cleanWs()
+        stage("Cleanup") {
+            steps {
+                cleanWs() // Move cleanWs() inside the steps block in a stage
+            }
+        }
         stage("w/o docker"){
             steps{
                 sh '''
