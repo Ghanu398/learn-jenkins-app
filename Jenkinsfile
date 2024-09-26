@@ -41,16 +41,7 @@ pipeline{
         stage("test"){
 
         steps{
-            sh '''
-                if [[ -f /var/jenkins_home/workspace/npm-build/build/index.html ]]
-                then 
-                echo "file exist and test is successfull"
-                else 
-
-                echo "file does not exist"
-                pwd
-                fi
-            '''
+            sh 'test -f build/index.html'
         }
         }
     }
