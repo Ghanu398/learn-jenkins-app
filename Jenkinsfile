@@ -12,7 +12,7 @@ pipeline{
             
         }
 
-         stage("with docker"){
+         stage("Build"){
             agent {
                 docker {
                  image 'node:latest'
@@ -23,7 +23,7 @@ pipeline{
                 sh '''
                 node --version 
                 npm --version
-                npm cli
+                npm ci
                 npm run build
                 ls -la
                 '''
