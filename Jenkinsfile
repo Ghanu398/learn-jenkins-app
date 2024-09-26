@@ -1,6 +1,7 @@
 pipeline{
    agent any
     stages{
+        cleanWs()
         stage("w/o docker"){
             steps{
                 sh '''
@@ -28,7 +29,16 @@ pipeline{
                 ls -la
                 '''
             }
+
+
             
+        }
+
+        stage("test"){
+
+        steps{
+            echo "Test stage"
+        }
         }
     }
     
