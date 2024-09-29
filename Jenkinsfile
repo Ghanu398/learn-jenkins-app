@@ -39,10 +39,26 @@ pipeline{
         }
 
         stage("test"){
-
-        steps{
-            sh 'test -f build/index.html'
+      agent{
+        docker{
+             image 'node:latest'
+                 reuseNode true
         }
+      }
+        steps{
+            sh '''
+            
+            'test -f build/index.html'
+            npm test
+            '''
+            
+        }
+        }
+    }
+
+    post {
+        always {
+            junit 'test-results/junit.xml'
         }
     }
     
