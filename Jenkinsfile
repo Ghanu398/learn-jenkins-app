@@ -47,8 +47,8 @@ pipeline{
       }
         steps{
             sh '''
-            
-            'test -f build/index.html'
+            ls -la
+            test -f build/index.html
             npm test
             '''
             
