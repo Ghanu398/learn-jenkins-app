@@ -17,7 +17,7 @@ pipeline{
             
         }
 
-         stage("Build"){
+        /* stage("Build"){
             agent {
                 docker {
                  image 'node:latest'
@@ -36,7 +36,7 @@ pipeline{
 
 
             
-        }
+        } */
 
         stage("test"){
       agent{
