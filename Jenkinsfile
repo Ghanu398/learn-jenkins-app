@@ -88,7 +88,27 @@ pipeline{
     }
         }
 
-        stage("deploy"){
+        stage("dev deploy"){
+            agent {
+                docker {
+                    image 'node:latest'
+                    reuseNode true
+                }
+
+            }
+            steps {
+               sh '''
+                npm install netlify-cli
+                node_modules/.bin/netlify --version
+                echo "netflify.site id : $NETLIFY_SITE_ID"
+                # netlify link --id "$NETFLIFY_SITE_ID"
+                node_modules/.bin/netlify status
+                node_modules/.bin/netlify deploy --dir=build
+               '''
+            }
+        }
+
+        stage("prod deploy"){
             agent {
                 docker {
                     image 'node:latest'
