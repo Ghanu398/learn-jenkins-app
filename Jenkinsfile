@@ -95,7 +95,7 @@ pipeline{
                 echo "netflify.site id : $NETLIFY_SITE_ID"
                 # netlify link --id "$NETFLIFY_SITE_ID"
                 node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --dev
+                node_modules/.bin/netlify deploy --dir=build --prod
                '''
             }
         }
