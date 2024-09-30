@@ -72,6 +72,20 @@ pipeline{
                     '''
                 }
         }
+
+        stage("deploy"){
+            agent {
+                docker {
+                    image 'node:latest'
+                    reuseNode true
+                }
+
+            }
+            steps {
+                npm install netlify-cli
+                node_modules/.bin/netlify --version
+            }
+        }
     }
 
     post {
