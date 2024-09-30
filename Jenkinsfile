@@ -1,11 +1,16 @@
 pipeline{
    agent any
+   environment {
+    NETFLIFY_SITE_ID = '3c27be64-111d-4f06-9df1-496a4ad97a54'
+   }
     stages{
         // stage("Cleanup") {
         //     steps {
         //         cleanWs() // Move cleanWs() inside the steps block in a stage
         //     }
        // }
+
+       
         stage("w/o docker"){
             steps{
                 sh '''
@@ -85,6 +90,7 @@ pipeline{
                sh '''
                 npm install netlify-cli
                 node_modules/.bin/netlify --version
+                echo "netflify.site id : $NETFLIFY_SITE_ID"
                '''
             }
         }
