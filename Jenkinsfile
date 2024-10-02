@@ -105,13 +105,14 @@ pipeline{
                 # netlify link --id "$NETFLIFY_SITE_ID"
                 netlify deploy --dir=build --json > deploy-output.json
                 CI_ENVIRONMENT_URL = $(node-jq -r '.deploy_url' deploy-output.json)
+                npx playwright test  --reporter=html
                '''
 
                
                 }
             }
 
-                       post {
+          post {
         always {
             junit 'jest-results/junit.xml'
             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'STAGING HTML Report', reportTitles: '', useWrapperFileDirectly: true])
