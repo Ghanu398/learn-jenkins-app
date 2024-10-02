@@ -3,6 +3,7 @@ pipeline{
    environment {
     NETLIFY_SITE_ID = '3c27be64-111d-4f06-9df1-496a4ad97a54'
     NETLIFY_AUTH_TOKEN = credentials("netlify-token")
+    REACT_APP_VERSION = "1.2.${BUILD_ID}"
     
    }
     stages{
@@ -24,7 +25,7 @@ pipeline{
             
         }
 
-        /* stage("Build"){
+        stage("Build"){
             agent {
                 docker {
                  image 'node:latest'
@@ -43,7 +44,7 @@ pipeline{
 
 
             
-        } */
+        } 
 
         stage("test"){
       agent{
