@@ -88,52 +88,37 @@ pipeline{
         stage("dev deploy"){
             agent {
                 docker {
-                    image 'node:latest'
+                    image 'manual'
                     reuseNode true
                 }
 
             }
+             environment {
+                    CI_ENVIRONMENT_URL = "testing"
+                }
             steps {
                sh '''
-                npm install netlify-cli node-jq
-                node_modules/.bin/netlify --version
-                echo "netflify.site id : $NETLIFY_SITE_ID"
+                
+                netlify --version
                 # netlify link --id "$NETFLIFY_SITE_ID"
-                node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
+                netlify deploy --dir=build --json > deploy-output.json
                 
                '''
 
                script {
-                env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json" , returnStdout: true)
+                CI_ENVIRONMENT_URL = "$(node-jq -r '.deploy_url' deploy-output.json)"
                }
             }
-        }
 
-         stage("staging E2E"){
-                agent {
-                    docker {
-                        image 'manual'
-                        reuseNode true
-                    }
-                }
-                environment {
-                    CI_ENVIRONMENT_URL = "${env.STAGING_URL}"
-                }
-
-                    steps{
-                        sh '''
-                        
-                        npx playwright test --reporter=html
-                        '''
-                    }
-
-                    post {
+                       post {
         always {
             junit 'jest-results/junit.xml'
             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'STAGING HTML Report', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
-            }
+        }
+
+         
 
         // stage("Approval"){
 
