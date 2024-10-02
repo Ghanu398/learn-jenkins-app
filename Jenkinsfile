@@ -108,7 +108,7 @@ pipeline{
                '''
 
                script {
-                CI_ENVIRONMENT_URL = "${node-jq -r '.deploy_url' deploy-output.json}"
+                CI_ENVIRONMENT_URL = $(node-jq -r '.deploy_url' deploy-output.json)
                }
                 }
             }
