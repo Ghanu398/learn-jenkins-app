@@ -32,11 +32,9 @@ pipeline{
             }
             steps{
                 sh '''
-                node --version 
-                npm --version
                 npm ci
                 npm run build
-                ls -la
+
                 '''
             }
 
@@ -71,8 +69,8 @@ pipeline{
 
                 steps{
                     sh '''
-                    npm install  serve
-                    node_modules/.bin/serve -s build &
+                    
+                    serve -s build &
                     sleep 30
                     npx playwright test --reporter=html
                   
@@ -97,15 +95,16 @@ pipeline{
             }
             steps {
                sh '''
-                
-                netlify --version
+                npm install netlify-cli node-jq
+                node_modules/.bin/netlify --version
+                echo "netflify.site id : $NETLIFY_SITE_ID"
                 # netlify link --id "$NETFLIFY_SITE_ID"
-                netlify deploy --dir=build --json > deploy-output.json
+                node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
                 
                '''
 
                script {
-                env.STAGING_URL = sh(script: "node-jq -r '.deploy_url' deploy-output.json" , returnStdout: true)
+                env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json" , returnStdout: true)
                }
             }
         }
@@ -136,66 +135,50 @@ pipeline{
     }
             }
 
-        stage("Approval"){
+        // stage("Approval"){
 
             
 
-            input {
-                message 'Do you wish to deploy to production?'
-                ok 'Yes, I am sure!'
-            }
+        //     input {
+        //         message 'Do you wish to deploy to production?'
+        //         ok 'Yes, I am sure!'
+        //     }
 
-            steps {
-                sh 'echo "approved and proceeding further for production deployment"'
-            }
+        //     steps {
+        //         sh 'echo "approved and proceeding further for production deployment"'
+        //     }
             
-        }
+        // }
 
         stage("prod deploy"){
             agent {
                 docker {
-                    image 'node:latest'
+                    image 'manual'
                     reuseNode true
                 }
 
             }
-            steps {
-               sh '''
-                npm install netlify-cli
-                node_modules/.bin/netlify --version
-                echo "netflify.site id : $NETLIFY_SITE_ID"
-                # netlify link --id "$NETFLIFY_SITE_ID"
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --prod
-               '''
-            }
-        }
-        
-            stage("PROD E2E"){
-                agent {
-                    docker {
-                        image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                        reuseNode true
-                    }
-                }
-                environment {
+             environment {
                     CI_ENVIRONMENT_URL = 'https://ghanshyam123.netlify.app'
                 }
-
-                    steps{
-                        sh '''
-                        
-                        npx playwright test --reporter=html
-                        '''
-                    }
-
-                    post {
+            steps {
+               sh '''
+                
+                # netlify link --id "$NETFLIFY_SITE_ID"
+                netlify status
+                netlify deploy --dir=build --prod
+                npx playwright test --reporter=html
+               '''
+            }
+                       post {
         always {
             junit 'jest-results/junit.xml'
             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+             }
+                            }
         }
-    }
-            }
+        
+            
        
 
     }
