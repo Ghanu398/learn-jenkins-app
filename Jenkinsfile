@@ -97,6 +97,8 @@ pipeline{
                     CI_ENVIRONMENT_URL = "testing"
                 }
             steps {
+
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                sh '''
                 
                 netlify --version
@@ -108,6 +110,7 @@ pipeline{
                script {
                 CI_ENVIRONMENT_URL = "$(node-jq -r '.deploy_url' deploy-output.json)"
                }
+                }
             }
 
                        post {
