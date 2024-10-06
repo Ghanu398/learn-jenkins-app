@@ -59,7 +59,7 @@ pipeline{
             }
             steps {
                 sh '''
-                docker image build -t ecs-nginx .
+                sudo docker image build -t ecs-nginx .
                 '''
             }
         }
