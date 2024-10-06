@@ -9,7 +9,7 @@ pipeline{
     AWS_CLUSTER = 'test-cluster'
     AWS_TD = 'test-task-defination'
     APPLICATION_NAME = 'ecs-nginx'
-    AWS_DOCKER_REGISTERY = '533267431526.dkr.ecr.us-east-1.amazonaws.com/ecs-nginx'
+    AWS_DOCKER_REGISTERY = '533267431526.dkr.ecr.us-east-1.amazonaws.com'
     
    }
     stages{
