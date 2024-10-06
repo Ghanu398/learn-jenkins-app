@@ -86,7 +86,7 @@ pipeline{
             withCredentials([usernamePassword(credentialsId: 'AWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
             
             sh '''
-                
+                sed -i "s/IMAGE_VERSION/$REACT_APP_VERSION/g" AWS/task-defination.json
                 aws ecs register-task-definition --cli-input-json file://AWS/task-defination.json > output-file.json
                 #yum update -y
                 #yum install jq -y
