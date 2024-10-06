@@ -53,13 +53,13 @@ pipeline{
                 docker{
                     image 'my-aws-cli'
                     reuseNode true
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    args ' -u root -v /var/run/docker.sock:/var/run/docker.sock'
                     
                 }
             }
             steps {
                 sh '''
-                sudo docker image build -t ecs-nginx .
+                docker image build -t ecs-nginx .
                 '''
             }
         }
