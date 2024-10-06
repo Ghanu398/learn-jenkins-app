@@ -22,6 +22,7 @@ pipeline{
             steps{
                 sh '''
                 docker image build -f 'ci/Dockerfile' -t manual .
+                docker image build -f AWS/Dockerfile -t MY-AWS-CLI .
                 '''
             }
             
@@ -46,8 +47,16 @@ pipeline{
             
         }
 
+        
         stage('build image for ECS'){
-            
+            agent {
+                docker{
+                    image 'MY-AWS-CLI'
+                    reuseNode true
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    
+                }
+            }
             steps {
                 sh '''
                 docker image build -t ecs-nginx .
@@ -58,8 +67,8 @@ pipeline{
             
             agent {
                 docker {
-                    image 'amazon/aws-cli'
-                    args "-u root --entrypoint=''"
+                    image 'MY-AWS-CLI'
+                    //args "-u root --entrypoint=''"
                     reuseNode true
                 }
             }
@@ -82,153 +91,153 @@ pipeline{
             }
         }
     }
-        stage('aws S3') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args "--entrypoint=''"
-                    reuseNode true
-                }
-            }
+//         stage('aws S3') {
+//             agent {
+//                 docker {
+//                     image 'amazon/aws-cli'
+//                     args "--entrypoint=''"
+//                     reuseNode true
+//                 }
+//             }
             
-            environment {
-                AWS_S3_BUCKET = 'ghannu'
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'AWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-            sh '''
-                aws --version
-                aws s3 ls
-                aws s3 sync build s3://$AWS_S3_BUCKET
+//             environment {
+//                 AWS_S3_BUCKET = 'ghannu'
+//             }
+//             steps {
+//                 withCredentials([usernamePassword(credentialsId: 'AWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+//             sh '''
+//                 aws --version
+//                 aws s3 ls
+//                 aws s3 sync build s3://$AWS_S3_BUCKET
                 
-                '''
-}
+//                 '''
+// }
                
-            }
-        } 
+//             }
+//         } 
 
-        stage("test"){
-      agent{
-        docker{
-             image 'node:latest'
-                 reuseNode true
-        }
-      }
-        steps{
-            sh '''
-            ls -la
-          # test -f build/index.html
-            npm test
-            '''
+//         stage("test"){
+//       agent{
+//         docker{
+//              image 'node:latest'
+//                  reuseNode true
+//         }
+//       }
+//         steps{
+//             sh '''
+//             ls -la
+//           # test -f build/index.html
+//             npm test
+//             '''
             
-        }
-        }
+//         }
+//         }
 
-        stage("E2E"){
-            agent {
-                docker {
-                    image 'manual'
-                    reuseNode true
-                }
-            }
+//         stage("E2E"){
+//             agent {
+//                 docker {
+//                     image 'manual'
+//                     reuseNode true
+//                 }
+//             }
 
-                steps{
-                    sh '''
+//                 steps{
+//                     sh '''
                     
-                    serve -s build &
-                    sleep 30
-                    npx playwright test --reporter=html
+//                     serve -s build &
+//                     sleep 30
+//                     npx playwright test --reporter=html
                   
-                    '''
-                }
+//                     '''
+//                 }
 
-                post {
-        always {
-            junit 'jest-results/junit.xml'
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-        }
-    }
-        }
+//                 post {
+//         always {
+//             junit 'jest-results/junit.xml'
+//             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+//         }
+//     }
+//         }
 
-        stage("dev deploy"){
-            agent {
-                docker {
-                    image 'manual'
-                    reuseNode true
-                }
+//         stage("dev deploy"){
+//             agent {
+//                 docker {
+//                     image 'manual'
+//                     reuseNode true
+//                 }
 
-            }
-             environment {
-                    CI_ENVIRONMENT_URL = "testing"
-                }
-            steps {
+//             }
+//              environment {
+//                     CI_ENVIRONMENT_URL = "testing"
+//                 }
+//             steps {
 
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-               sh '''
+//                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+//                sh '''
                 
-                netlify --version
-                # netlify link --id "$NETFLIFY_SITE_ID"
-                netlify deploy --dir=build --json > deploy-output.json
-                CI_ENVIRONMENT_URL=$(node-jq -r '.deploy_url' deploy-output.json)
-                npx playwright test  --reporter=html
-               '''
+//                 netlify --version
+//                 # netlify link --id "$NETFLIFY_SITE_ID"
+//                 netlify deploy --dir=build --json > deploy-output.json
+//                 CI_ENVIRONMENT_URL=$(node-jq -r '.deploy_url' deploy-output.json)
+//                 npx playwright test  --reporter=html
+//                '''
 
                
-                }
-            }
+//                 }
+//             }
 
-          post {
-        always {
-            junit 'jest-results/junit.xml'
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'STAGING HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-        }
-    }
-        }
+//           post {
+//         always {
+//             junit 'jest-results/junit.xml'
+//             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'STAGING HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+//         }
+//     }
+//         }
 
          
 
-        // stage("Approval"){
+//         // stage("Approval"){
 
             
 
-        //     input {
-        //         message 'Do you wish to deploy to production?'
-        //         ok 'Yes, I am sure!'
-        //     }
+//         //     input {
+//         //         message 'Do you wish to deploy to production?'
+//         //         ok 'Yes, I am sure!'
+//         //     }
 
-        //     steps {
-        //         sh 'echo "approved and proceeding further for production deployment"'
-        //     }
+//         //     steps {
+//         //         sh 'echo "approved and proceeding further for production deployment"'
+//         //     }
             
-        // }
+//         // }
 
-        stage("prod deploy"){
-            agent {
-                docker {
-                    image 'manual'
-                    reuseNode true
-                }
+//         stage("prod deploy"){
+//             agent {
+//                 docker {
+//                     image 'manual'
+//                     reuseNode true
+//                 }
 
-            }
-             environment {
-                    CI_ENVIRONMENT_URL = 'https://ghanshyam123.netlify.app'
-                }
-            steps {
-               sh '''
+//             }
+//              environment {
+//                     CI_ENVIRONMENT_URL = 'https://ghanshyam123.netlify.app'
+//                 }
+//             steps {
+//                sh '''
                 
-                # netlify link --id "$NETFLIFY_SITE_ID"
-                netlify status
-                netlify deploy --dir=build --prod
-                npx playwright test --reporter=html
-               '''
-            }
-                       post {
-        always {
-            junit 'jest-results/junit.xml'
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-             }
-                            }
-        }
+//                 # netlify link --id "$NETFLIFY_SITE_ID"
+//                 netlify status
+//                 netlify deploy --dir=build --prod
+//                 npx playwright test --reporter=html
+//                '''
+//             }
+//                        post {
+//         always {
+//             junit 'jest-results/junit.xml'
+//             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+//              }
+//                             }
+//         }
         
             
        
