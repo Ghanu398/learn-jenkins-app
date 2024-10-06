@@ -4,6 +4,10 @@ pipeline{
     NETLIFY_SITE_ID = '3c27be64-111d-4f06-9df1-496a4ad97a54'
     NETLIFY_AUTH_TOKEN = credentials("netlify-token")
     REACT_APP_VERSION = "1.2.${BUILD_ID}"
+    AWS_DEFAULT_REGION = 'us-east-1'
+    AWS_SERVICE = 'learn-docker'
+    AWS_CLUSTER = 'test-cluster'
+    AWS_TD = 'test-task-defination'
     
    }
     stages{
@@ -17,7 +21,7 @@ pipeline{
         stage("docker build"){
             steps{
                 sh '''
-                docker image build -t manual .
+                docker image build -f 'ci/Dockerfile' -t manual .
                 '''
             }
             
@@ -42,7 +46,43 @@ pipeline{
             
         }
 
-        stage('aws') {
+        stage('build image for ECS'){
+            
+            steps {
+                sh '''
+                docker image build -t ecs-nginx .
+                '''
+            }
+        }
+ stage('ECS') {
+            
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    args "-u root --entrypoint=''"
+                    reuseNode true
+                }
+            }
+            steps {
+                
+            withCredentials([usernamePassword(credentialsId: 'AWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+            
+            sh '''
+                
+                aws ecs register-task-definition --cli-input-json file://AWS/task-defination-prod.json > output-file.json
+                update -y
+                yum install jq -y
+                VERSION=$(jq '.taskDefinition.taskDefinitionArn' output-file.json | awk -F ':' '{print $NF}' | awk -F '"' '{print $1}')
+                aws ecs update-service --cluster $AWS_CLUSTER --service $AWS_SERVICE --task-definition $AWS_TD:$VERSION
+                aws ecs wait services-stable --cluster $AWS_CLUSTER --services $AWS_SERVICE
+
+                '''
+
+
+            }
+        }
+    }
+        stage('aws S3') {
             agent {
                 docker {
                     image 'amazon/aws-cli'
