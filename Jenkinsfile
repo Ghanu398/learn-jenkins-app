@@ -22,7 +22,7 @@ pipeline{
             steps{
                 sh '''
                 docker image build -f 'ci/Dockerfile' -t manual .
-                docker image build -f AWS/Dockerfile -t MY-AWS-CLI .
+                docker image build -f AWS/Dockerfile -t my-aws-cli .
                 '''
             }
             
@@ -51,7 +51,7 @@ pipeline{
         stage('build image for ECS'){
             agent {
                 docker{
-                    image 'MY-AWS-CLI'
+                    image 'my-aws-cli'
                     reuseNode true
                     args '-v /var/run/docker.sock:/var/run/docker.sock'
                     
@@ -67,7 +67,7 @@ pipeline{
             
             agent {
                 docker {
-                    image 'MY-AWS-CLI'
+                    image 'my-aws-cli'
                     //args "-u root --entrypoint=''"
                     reuseNode true
                 }
