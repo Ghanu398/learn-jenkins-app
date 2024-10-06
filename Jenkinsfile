@@ -8,6 +8,8 @@ pipeline{
     AWS_SERVICE = 'learn-docker'
     AWS_CLUSTER = 'test-cluster'
     AWS_TD = 'test-task-defination'
+    APPLICATION_NAME = 'ecs-nginx'
+    AWS_DOCKER_REGISTERY = '533267431526.dkr.ecr.us-east-1.amazonaws.com/ecs-nginx'
     
    }
     stages{
@@ -58,9 +60,16 @@ pipeline{
                 }
             }
             steps {
+
+                 withCredentials([usernamePassword(credentialsId: 'AWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                 sh '''
-                docker image build -t ecs-nginx .
+               
+                docker image build -t $AWS_DOCKER_REGISTERY/$APPLICATION_NAME:$REACT_APP_VERSION .
+                aws ecr get-login-password  | docker login --username AWS --password-stdin 533267431526.dkr.ecr.us-east-1.amazonaws.com
+                docker image push $AWS_DOCKER_REGISTERY/$APPLICATION_NAME:$REACT_APP_VERSION
+
                 '''
+                }
             }
         }
  stage('ECS') {
