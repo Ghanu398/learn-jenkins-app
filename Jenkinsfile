@@ -68,7 +68,7 @@ pipeline{
             agent {
                 docker {
                     image 'my-aws-cli'
-                    //args "-u root --entrypoint=''"
+                    args "-u root"
                     reuseNode true
                 }
             }
