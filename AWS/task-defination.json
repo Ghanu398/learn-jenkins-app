@@ -6,7 +6,7 @@
     "containerDefinitions": [
         {
             "name": "nginx",
-            "image": "nginx:alpine",
+            "image": "533267431526.dkr.ecr.us-east-1.amazonaws.com/ecs-nginx:$REACT_APP_VERSION",
             "portMappings": [{
                 "name": "portmapping",
                 "containerPort": 80,
@@ -20,5 +20,5 @@
     "networkMode": "awsvpc",
     "memory": "512",
     "cpu": "256",
-    "executionRoleArn": ""
+    "executionRoleArn": "arn:aws:iam::533267431526:role/ecs_execuction_role"
 }
